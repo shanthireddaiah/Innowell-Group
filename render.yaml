@@ -1,0 +1,50 @@
+services:
+  # 1. FastAPI Backend Web Service
+  - type: web
+    name: innowell-hrms-backend
+    env: python
+    rootDir: backend
+    plan: free
+    buildCommand: pip install -r requirements.txt && python seed.py
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-3.7-flash
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "480"
+      - key: ADMIN_EMAIL
+        value: Shanthi@innowell.com
+      - key: ADMIN_PASSWORD
+        value: Shanthi@123
+      - key: HR_EMAIL
+        value: Janani@innowell.com
+      - key: HR_PASSWORD
+        value: Janani@123
+      - key: MANAGER_EMAIL
+        value: Kannan@innowell.com
+      - key: MANAGER_PASSWORD
+        value: Kannan@123
+
+  # 2. React Vite Frontend Static Site
+  - type: web
+    name: innowell-hrms-frontend
+    env: static
+    rootDir: frontend
+    plan: free
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: innowell-hrms-backend
+          property: host
+          path: /api
